@@ -20,7 +20,7 @@ const (
 type TapDanceFlow struct {
 	// tunnel index and start time
 	id      uint64
-	startMs time.Time
+	startMs time.Time //TODO: unused
 
 	// reference to global proxy
 	proxy *TapdanceProxy
