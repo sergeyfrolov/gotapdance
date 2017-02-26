@@ -17,5 +17,5 @@ func (c *counter_uint64) dec() uint64 {
 }
 
 func (c *counter_uint64) get() uint64 {
-	return c.value
+	return atomic.LoadUint64(&c.value)
 }
