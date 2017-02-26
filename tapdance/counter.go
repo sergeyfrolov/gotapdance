@@ -1,38 +1,21 @@
 package tapdance
 
-import "sync"
+import "sync/atomic"
 
 type counter_uint64 struct {
-	sync.Mutex
 	value uint64
 }
 
 func (c *counter_uint64) inc() uint64 {
-	c.Lock()
-	defer c.Unlock()
-	if c.value == ^uint64(0) {
-		// if max
-		c.value = 0
-	} else {
-		c.value++
-	}
+	atomic.AddUint64(&c.value, uint64(1))
 	return c.value
 }
 
 func (c *counter_uint64) dec() uint64 {
-	c.Lock()
-	defer c.Unlock()
-	if c.value == 0 {
-		c.value = ^uint64(0)
-	} else {
-		c.value--
-	}
+	atomic.AddUint64(&c.value, ^uint64(0))
 	return c.value
 }
 
-func (c *counter_uint64) get() (value uint64) {
-	c.Lock()
-	defer c.Unlock()
-	value = c.value
-	return
+func (c *counter_uint64) get() uint64 {
+	return atomic.LoadUint64(&c.value)
 }
