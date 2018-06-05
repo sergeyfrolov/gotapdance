@@ -97,9 +97,23 @@ func (m *tdTagType) Str() string {
 // bits 1-6 are unassigned
 // bit 7 (1 << 0) signals to use TypeLen outer proto
 var (
-	tdFlagUploadOnly = uint8(1 << 7)
-	tdFlagUseTIL     = uint8(1 << 0)
+	tdFlagUploadOnly  = uint8(1 << 7)
+	tdFlagProxyHeader = uint8(1 << 1)
+	tdFlagUseTIL      = uint8(1 << 0)
 )
+
+var default_flags = tdFlagUseTIL
+
+// Requests station to proxy client IP to upstream in following form:
+// CONNECT 1.2.3.4:443 HTTP/1.1\r\n
+// Host: 1.2.3.4\r\n
+// \r\n
+// PROXY TCP4 x.x.x.x 127.0.0.1 1111 1234\r\n
+//       ^__^ ^_____^ ^_________________^
+//      proto clientIP      garbage
+func EnableProxyProtocol() {
+	default_flags |= tdFlagProxyHeader
+}
 
 // List of actually supported ciphers(not a list of offered ciphers!)
 // Essentially all working AES_GCM_128 ciphers
