@@ -94,7 +94,8 @@ func (m *tdTagType) Str() string {
 
 // First byte of tag is for FLAGS
 // bit 0 (1 << 7) determines if flow is bidirectional(0) or upload-only(1)
-// bits 1-6 are unassigned
+// bits 1-5 are unassigned
+// bit 6 determines whether PROXY-protocol-formatted string will be sent
 // bit 7 (1 << 0) signals to use TypeLen outer proto
 var (
 	tdFlagUploadOnly  = uint8(1 << 7)
