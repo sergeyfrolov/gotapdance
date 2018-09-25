@@ -193,6 +193,8 @@ func (tdRaw *tdRawConn) tryDialOnce(ctx context.Context, expectedTransition pb.S
 	switch tdRaw.tagType {
 	case tagHttpGetIncomplete:
 
+		// Give up waiting for the station pretty quickly (2x handshake time == ~4RTT)
+		tdRaw.tlsConn.SetDeadline(time.Now().Add(connect_time * 2))
 		tdRaw.initialMsg, err = tdRaw.readProto()
 		if err != nil {
 			if errIsTimeout(err) {
@@ -218,6 +220,10 @@ func (tdRaw *tdRawConn) tryDialOnce(ctx context.Context, expectedTransition pb.S
 			}
 			return
 		}
+
+		// Update the timeout to something random
+		tdRaw.tlsConn.SetDeadline(time.Now().Add(
+			getRandomDuration(deadlineConnectTDStationMin, deadlineConnectTDStationMax)))
 
 		if tdRaw.initialMsg.GetStateTransition() != expectedTransition {
 			err = errors.New("Init error: state transition mismatch!" +
