@@ -7,6 +7,7 @@ addons:
   artifacts: true
 
 install:
+  - go get -d ./...
   - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
   - git clone https://github.com/Psiphon-Labs/psiphon-tunnel-core.git $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core
   - go get github.com/kardianos/govendor
