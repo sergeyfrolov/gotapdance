@@ -3,6 +3,10 @@ language: go
 go:
   - "1.11"
 
+addons:
+  artifacts:
+    s3_region: "us-east-2"
+
 install:
   - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
   - git clone https://github.com/Psiphon-Labs/psiphon-tunnel-core.git $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core
