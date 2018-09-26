@@ -4,8 +4,7 @@ go:
   - "1.11"
 
 addons:
-  artifacts:
-    s3_region: "us-east-2"
+  artifacts: true
 
 install:
   - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
