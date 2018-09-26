@@ -4,7 +4,8 @@ go:
   - "1.11"
 
 install:
-  - go get -d github.com/Psiphon-Labs/psiphon-tunnel-core
+  - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
+  - git clone https://github.com/Psiphon-Labs/psiphon-tunnel-core.git $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core
 
 script:
   - go build -tags 'TAPDANCE' github.com/Psiphon-Labs/psiphon-tunnel-core/ConsoleClient
