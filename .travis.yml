@@ -1,17 +1,20 @@
 language: go
 
 go:
- - "1.9"
- - "1.10"
+  - "1.11"
+
+os:
+  - linux
+  - osx
+
+sudo: required
+dist: trusty
 
 addons:
   artifacts: true
 
 before_install:
- - sudo apt-get install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
-
-sudo: required
-dist: trusty
+  - sudo apt-get install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
 
 install:
   - go get -t ./...
