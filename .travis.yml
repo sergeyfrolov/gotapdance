@@ -12,9 +12,11 @@ dist: trusty
 
 addons:
   artifacts: true
-
-before_install:
-  - sudo apt-get install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
+  apt:
+    packages:
+      - libegl1-mesa-dev
+      - libgles2-mesa-dev
+      - libx11-dev
 
 install:
   - go get -t ./...
