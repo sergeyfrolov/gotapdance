@@ -1,7 +1,7 @@
 @@ -732,6 +732,9 @@
                  json.put("EgressRegion", egressRegion);
              }
-
+ 
 +            json.put("TunnelProtocol", "TAPDANCE-OSSH");
 +            json.put("DisableTactics", true);
 +
