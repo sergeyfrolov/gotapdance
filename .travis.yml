@@ -22,9 +22,9 @@ jobs:
         - gometalinter --install
         - gometalinter --disable-all -E vet -E gofmt -E misspell -E ineffassign -E deadcode --tests ./tapdance
 
-    - &build
+    - &build-cli
       stage: build
-      name: "Build cli and Psiphon ConsoleClient"
+      name: "Build cli and Psiphon ConsoleClient on Linux"
       install:
         - go get ./...
         - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
@@ -37,5 +37,6 @@ jobs:
         - go build -o build/cli ./cli
         - go build -o build/ConsoleClient -tags 'TAPDANCE' github.com/Psiphon-Labs/psiphon-tunnel-core/ConsoleClient
 
-    - <<: *build
+    - <<: *build-cli
+      name: "Build cli and Psiphon ConsoleClient on OS X"
       os: osx
