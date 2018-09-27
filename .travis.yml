@@ -5,6 +5,9 @@ os: linux
 sudo: required
 dist: trusty
 
+services:
+  - docker
+
 addons:
   artifacts: true
 
@@ -22,7 +25,7 @@ jobs:
         - gometalinter --install
         - gometalinter --disable-all -E vet -E gofmt -E misspell -E ineffassign -E deadcode --tests ./tapdance
 
-    - &build-cli
+    - &build
       stage: build
       name: "Build cli and Psiphon ConsoleClient on Linux"
       install:
@@ -32,11 +35,18 @@ jobs:
         - go get github.com/kardianos/govendor
         - (cd $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core && govendor remove github.com/sergeyfrolov/gotapdance/...)
         - sed -i -e 's/refraction_networking_tapdance.Logger().Out = ioutil.Discard//' $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core/psiphon/common/tapdance/tapdance.go
-      script:
         - mkdir build
+      script:
         - go build -o build/cli ./cli
         - go build -o build/ConsoleClient -tags 'TAPDANCE' github.com/Psiphon-Labs/psiphon-tunnel-core/ConsoleClient
 
-    - <<: *build-cli
+    - <<: *build
       name: "Build cli and Psiphon ConsoleClient on OS X"
       os: osx
+
+    - <<: *build
+      name: "Build Psiphon Android Library"
+      script:
+        - docker build -t psiandroid $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core/MobileLibrary/Android
+        - docker run -v $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core:/go/src/github.com/Psiphon-Labs/psiphon-tunnel-core psiandroid /bin/bash -c 'cd /go/src/github.com/Psiphon-Labs/psiphon-tunnel-core/MobileLibrary/Android && ./make.bash "TAPDANCE"'
+        - mv $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core/MobileLibrary/Android/ca.psiphon.aar build/
