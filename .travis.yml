@@ -1,6 +1,13 @@
 language: go
 go: "1.10"
 
+os:
+  - linux
+  - osx
+
+sudo: required
+dist: trusty
+
 addons:
   artifacts: true
 
@@ -9,8 +16,6 @@ jobs:
     - stage: test
       name: "Test and lint gotapdance"
       os: linux
-      sudo: required
-      dist: trusty
       install:
         - go get -t ./...
         - go get github.com/golang/lint/golint
@@ -23,12 +28,6 @@ jobs:
 
     - stage: build
       name: "Build cli and Psiphon ConsoleClient"
-      matrix:
-        include:
-          - os: linux
-            sudo: required
-            dist: trusty
-          - os: osx
       install:
         - go get ./...
         - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
