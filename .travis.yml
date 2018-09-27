@@ -1,13 +1,6 @@
 language: go
 go: "1.10"
 
-os:
-  - linux
-  - osx
-
-sudo: required
-dist: trusty
-
 addons:
   artifacts: true
 
@@ -16,6 +9,8 @@ jobs:
     - stage: test
       name: "Test and lint gotapdance"
       os: linux
+      sudo: required
+      dist: trusty
       install:
         - go get -t ./...
         - go get github.com/golang/lint/golint
@@ -26,8 +21,12 @@ jobs:
         - gometalinter --install
         - gometalinter --disable-all -E vet -E gofmt -E misspell -E ineffassign -E deadcode --tests ./tapdance
 
-    - stage: build
-      name: "Build cli and Psiphon ConsoleClient"
+    - &build
+      stage: build
+      name: "Build cli and Psiphon ConsoleClient on Linux"
+      os: linux
+      sudo: required
+      dist: trusty
       install:
         - go get ./...
         - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
@@ -39,3 +38,7 @@ jobs:
         - mkdir build
         - go build -o build/cli ./cli
         - go build -o build/ConsoleClient -tags 'TAPDANCE' github.com/Psiphon-Labs/psiphon-tunnel-core/ConsoleClient
+
+    - <<: *build
+      name: "Build cli and Psiphon ConsoleClient on OS X"
+      os: osx
