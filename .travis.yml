@@ -35,7 +35,6 @@ jobs:
         - go get github.com/kardianos/govendor
         - (cd $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core && govendor remove github.com/sergeyfrolov/gotapdance/...)
         - sed -i -e 's/refraction_networking_tapdance.Logger().Out = ioutil.Discard//' $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core/psiphon/common/tapdance/tapdance.go
-        - mkdir build
       script:
         - go build -o build/cli ./cli
         - go build -o build/ConsoleClient -tags 'TAPDANCE' github.com/Psiphon-Labs/psiphon-tunnel-core/ConsoleClient
@@ -46,8 +45,19 @@ jobs:
 
     - <<: *build
       name: "Build Psiphon Android Library"
+      language: android
+      android:
+        components:
+          - build-tools-26.0.2
+          - android-26
       before_script:
         - docker pull refraction/psiandroid
+        - mkdir -p $GOPATH/src/bitbucket.org/psiphon
+        - hg clone https://bitbucket.org/psiphon/psiphon-circumvention-system $GOPATH/src/bitbucket.org/psiphon/psiphon-circumvention-system
+        - openssl aes-256-cbc -d -K $encrypted_8a9748c534c1_key -iv $encrypted_8a9748c534c1_iv -in build/EmbeddedValues.java.enc -out $GOPATH/src/bitbucket.org/psiphon/psiphon-circumvention-system/Android/app/src/main/java/com/psiphon3/psiphonlibrary/EmbeddedValues.java
+        - patch $GOPATH/src/bitbucket.org/psiphon/psiphon-circumvention-system/Android/app/src/main/java/com/psiphon3/psiphonlibrary/TunnelManager.java build/TunnelManager.java.diff
       script:
         - docker run -v $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core:/go/src/github.com/Psiphon-Labs/psiphon-tunnel-core refraction/psiandroid /bin/bash -c 'cd /go/src/github.com/Psiphon-Labs/psiphon-tunnel-core/MobileLibrary/Android && ./make.bash "TAPDANCE"'
         - mv $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core/MobileLibrary/Android/ca.psiphon.aar build/
+        - cp build/ca.psiphon.aar $GOPATH/src/bitbucket.org/psiphon/psiphon-circumvention-system/Android/app/libs/
+        - (cd $GOPATH/src/bitbucket.org/psiphon/psiphon-circumvention-system/Android && ./gradlew build)
