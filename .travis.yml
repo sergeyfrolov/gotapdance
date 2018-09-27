@@ -1,10 +1,6 @@
 language: go
 go: "1.10"
 
-os:
-  - linux
-  - osx
-
 addons:
   artifacts: true
 
@@ -12,7 +8,7 @@ jobs:
   include:
     - stage: test
       name: "Test and lint gotapdance"
-      if: os = linux
+      os: linux
       install:
         - go get -t ./...
         - go get github.com/golang/lint/golint
@@ -24,7 +20,23 @@ jobs:
         - gometalinter --disable-all -E vet -E gofmt -E misspell -E ineffassign -E deadcode --tests ./tapdance
 
     - stage: build
-      name: "Build cli and Psiphon ConsoleClient"
+      name: "Build cli and Psiphon ConsoleClient on Linux"
+      os: linux
+      install:
+        - go get ./...
+        - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
+        - git clone https://github.com/Psiphon-Labs/psiphon-tunnel-core.git $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core
+        - go get github.com/kardianos/govendor
+        - (cd $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core && govendor remove github.com/sergeyfrolov/gotapdance/...)
+        - sed -i -e 's/refraction_networking_tapdance.Logger().Out = ioutil.Discard//' $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core/psiphon/common/tapdance/tapdance.go
+      script:
+        - mkdir build
+        - go build -o build/cli ./cli
+        - go build -o build/ConsoleClient -tags 'TAPDANCE' github.com/Psiphon-Labs/psiphon-tunnel-core/ConsoleClient
+
+    - stage: build
+      name: "Build cli and Psiphon ConsoleClient on OS X"
+      os: osx
       install:
         - go get ./...
         - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
