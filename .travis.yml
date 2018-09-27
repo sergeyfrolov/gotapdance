@@ -1,6 +1,10 @@
 language: go
 go: "1.10"
 
+os:
+  - linux
+  - osx
+
 addons:
   artifacts: true
 
@@ -8,7 +12,7 @@ jobs:
   include:
     - stage: test
       name: "Test and lint gotapdance"
-      os: linux
+      if: os = linux
       install:
         - go get -t ./...
         - go get github.com/golang/lint/golint
@@ -21,9 +25,6 @@ jobs:
 
     - stage: build
       name: "Build cli and Psiphon ConsoleClient"
-      os:
-        - linux
-        - osx
       install:
         - go get ./...
         - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
