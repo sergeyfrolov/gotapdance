@@ -35,5 +35,7 @@ script:
  - go test -race -v ./tdproxy/
  - gometalinter --install
  - gometalinter --disable-all -E vet -E gofmt -E misspell -E ineffassign -E deadcode --tests ./tapdance/
+ # Build cli
+ - go build -race ./cli
  # Build Psiphon ConsoleClient
  - go build -race -tags 'TAPDANCE' github.com/Psiphon-Labs/psiphon-tunnel-core/ConsoleClient
