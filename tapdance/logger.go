@@ -17,10 +17,10 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 var logrusLogger *logrus.Logger
 var initLoggerOnce sync.Once
 
-const build string = "[BUILD]"
-
 // Logger is an access point for TapDance-wide logger
 func Logger() *logrus.Logger {
+	const build string = "[BUILD]"
+
 	initLoggerOnce.Do(func() {
 		logrusLogger = logrus.New()
 		logrusLogger.Formatter = new(formatter)
