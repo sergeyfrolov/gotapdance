@@ -45,10 +45,10 @@ jobs:
 
     - <<: *build
       name: "Build Psiphon Android Library and App"
-      before_install:
-        - android-update-sdk --components=build-tools-26.0.2
-        - android-update-sdk --components=android-26
-        - export PATH=/usr/local/android-sdk/tools/bin:$PATH
+      android:
+        components:
+          - build-tools-26.0.2
+          - android-26
       before_script:
         - docker pull refraction/psiandroid
         - mkdir -p $GOPATH/src/bitbucket.org/psiphon
