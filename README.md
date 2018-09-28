@@ -4,7 +4,7 @@
 
 <p align="center">TapDance is a free-to-use anti-censorship technology, protected from enumeration attacks.</p>
 <p align="center">
-<a href="https://travis-ci.org/sergeyfrolov/gotapdance"><img src="https://travis-ci.org/sergeyfrolov/gotapdance.svg?label=build"></a>
+<a href="https://travis-ci.org/sergeyfrolov/gotapdance"><img src="https://travis-ci.org/sergeyfrolov/gotapdance.svg?branch=master"></a>
 <a href="https://godoc.org/github.com/sergeyfrolov/gotapdance/tapdance"><img src="https://img.shields.io/badge/godoc-reference-blue.svg"></a>
 	<a href="https://goreportcard.com/report/github.com/sergeyfrolov/gotapdance"><img src="https://goreportcard.com/badge/github.com/sergeyfrolov/gotapdance"></a>
 </p>
