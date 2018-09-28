@@ -34,6 +34,7 @@ jobs:
       name: "Build cli and Psiphon ConsoleClient on Linux"
       install:
         - go get ./...
+        - sed -i -e 's/[BUILD]/$TRAVIS_BRANCH-$TRAVIS_COMMIT/' tapdance/logger.go
         - mkdir -p $GOPATH/src/github.com/Psiphon-Labs
         - git clone https://github.com/Psiphon-Labs/psiphon-tunnel-core.git $GOPATH/src/github.com/Psiphon-Labs/psiphon-tunnel-core
         - go get github.com/kardianos/govendor

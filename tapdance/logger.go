@@ -17,6 +17,8 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 var logrusLogger *logrus.Logger
 var initLoggerOnce sync.Once
 
+const build string = "[BUILD]"
+
 // Logger is an access point for TapDance-wide logger
 func Logger() *logrus.Logger {
 	initLoggerOnce.Do(func() {
@@ -24,6 +26,7 @@ func Logger() *logrus.Logger {
 		logrusLogger.Formatter = new(formatter)
 		logrusLogger.Level = logrus.InfoLevel
 		//logrusLogger.Level = logrus.DebugLevel
+		logrusLogger.Infof("Running gotapdance build %s", build)
 	})
 	return logrusLogger
 }
