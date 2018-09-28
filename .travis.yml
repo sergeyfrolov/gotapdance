@@ -45,6 +45,11 @@ jobs:
 
     - <<: *build
       name: "Build Psiphon Android Library and App"
+      language: android
+      android:
+        components:
+          - build-tools-26.0.2
+          - android-26
       before_script:
         - docker pull refraction/psiandroid
         - mkdir -p $GOPATH/src/bitbucket.org/psiphon
