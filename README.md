@@ -11,7 +11,7 @@
 
 # Build
 ## Download Golang and TapDance and dependencies
-1. Install [Golang](https://golang.org/dl/) (currently tested against 1.9 and 1.10 versions), set GOPATH:
+1. Install [Golang](https://golang.org/dl/) (currently tested against version 1.10), set GOPATH:
 
  ```bash
 GOPATH="${HOME}/go/"
@@ -37,11 +37,11 @@ If you have outdated versions of libraries above you might want to do `go get -u
  * Mobile: native applications in Java/Objective C for Android or iOS. Golang bindings are used as a shared library.
 
    * [Android application in Java](android)
-    
+
    * iOS version: coming ~~soon~~ eventually
 
    * [Golang Bindings](gobind)
- 
+
  * Use tapdance directly from other Golang program:
 
 ```Golang
@@ -78,11 +78,11 @@ func main() {
 
 
  # Links
- 
+
  [Refraction Networking](https://refraction.network) is an umberlla term for the family of similarly working technnologies.
- 
- TapDance station code released for FOCI'17 on github: [refraction-networking/tapdance](https://github.com/refraction-networking/tapdance) 
- 
+
+ TapDance station code released for FOCI'17 on github: [refraction-networking/tapdance](https://github.com/refraction-networking/tapdance)
+
  Original 2014 paper: ["TapDance: End-to-Middle Anticensorship without Flow Blocking"](https://ericw.us/trow/tapdance-sec14.pdf)
- 
+
  Newer(2017) paper that shows TapDance working at high-scale: ["An ISP-Scale Deployment of TapDance"](https://sfrolov.io/papers/foci17-paper-frolov_0.pdf)
