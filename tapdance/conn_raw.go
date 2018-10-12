@@ -7,6 +7,7 @@ import (
 	"errors"
 	pb "github.com/sergeyfrolov/gotapdance/protobuf"
 	"io"
+	"math"
 	"net"
 	"strconv"
 	"strings"
@@ -407,6 +408,7 @@ func (tdRaw *tdRawConn) idStr() string {
 // Returns error if it's not a protobuf
 func (tdRaw *tdRawConn) readProto() (msg pb.StationToClient, err error) {
 	var readBytes int
+	var copiedBytes int64
 	var readBytesTotal uint32 // both header and body
 	headerSize := uint32(2)
 
@@ -454,19 +456,22 @@ func (tdRaw *tdRawConn) readProto() (msg pb.StationToClient, err error) {
 	}
 
 	totalBytesToRead := headerSize + msgLen
-	readBuffer := make([]byte, msgLen)
+	var readBuffer bytes.Buffer
 
 	// Get the message itself
 	for readBytesTotal < totalBytesToRead {
-		readBytes, err = tdRaw.tlsConn.Read(readBuffer[readBytesTotal-headerSize : msgLen])
-		readBytesTotal += uint32(readBytes)
+		copiedBytes, err = io.CopyN(&readBuffer, tdRaw.tlsConn, int64(totalBytesToRead-readBytesTotal))
+		if copiedBytes > math.MaxUint32 {
+			panic("copiedBytes > MaxUint32")
+		}
+		readBytesTotal += uint32(copiedBytes)
 
 		if err != nil {
 			return
 		}
 	}
 
-	err = proto.Unmarshal(readBuffer[:], &msg)
+	err = proto.Unmarshal(readBuffer.Bytes(), &msg)
 	if err != nil {
 		return
 	}
