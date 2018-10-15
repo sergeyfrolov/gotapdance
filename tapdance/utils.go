@@ -1,21 +1,21 @@
 package tapdance
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
-	"github.com/agl/ed25519/extra25519"
-	"golang.org/x/crypto/curve25519"
-	mrand "math/rand"
-
-	"bytes"
 	"encoding/binary"
 	"errors"
+	mrand "math/rand"
 	"net"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/agl/ed25519/extra25519"
+	"golang.org/x/crypto/curve25519"
 )
 
 // The key argument should be the AES key, either 16 or 32 bytes
@@ -145,7 +145,7 @@ func obfuscateTagAndProtobuf(stegoPayload []byte, protobuf []byte, stationPubkey
 	if len(protobuf) > 0 {
 		// probably could have used all zeros as IV here, but better to err on safe side
 		aesIvProtobuf := make([]byte, 12)
-		_, err := rand.Read(aesIvProtobuf)
+		_, err = rand.Read(aesIvProtobuf)
 		if err != nil {
 			return nil, nil, err
 		}

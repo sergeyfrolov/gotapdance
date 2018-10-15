@@ -12,13 +12,14 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
-	"github.com/golang/protobuf/proto"
-	"github.com/sergeyfrolov/bsbuffer"
-	pb "github.com/sergeyfrolov/gotapdance/protobuf"
 	"io"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/sergeyfrolov/bsbuffer"
+	pb "github.com/sergeyfrolov/gotapdance/protobuf"
 )
 
 // TapdanceFlowConn represents single TapDance flow.

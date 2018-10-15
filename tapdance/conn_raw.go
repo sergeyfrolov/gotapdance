@@ -2,10 +2,13 @@ package tapdance
 
 import (
 	"bytes"
+	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
-	pb "github.com/sergeyfrolov/gotapdance/protobuf"
+	"fmt"
 	"io"
 	"net"
 	"strconv"
@@ -13,12 +16,9 @@ import (
 	"sync"
 	"time"
 
-	"context"
-	"encoding/base64"
-	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/refraction-networking/utls"
-	"crypto/rand"
+	pb "github.com/sergeyfrolov/gotapdance/protobuf"
 )
 
 // Simply establishes TLS and TapDance connection.
