@@ -58,11 +58,11 @@ type TapdanceFlowConn struct {
 
 // NewTapDanceConn returns TapDance connection, that is ready to be Dial'd
 func NewTapDanceConn() (net.Conn, error) {
-	return makeTdFlow(flowBidirectional, nil)
+	return makeTdFlow(flowBidirectional, nil, "")
 }
 
 // Prepares TD flow: does not make any network calls nor sets up engines
-func makeTdFlow(flow flowType, tdRaw *tdRawConn) (*TapdanceFlowConn, error) {
+func makeTdFlow(flow flowType, tdRaw *tdRawConn, covert string) (*TapdanceFlowConn, error) {
 	if tdRaw == nil {
 		// raw TapDance connection is not given, make a new one
 		stationPubkey := Assets().GetPubkey()
@@ -71,6 +71,7 @@ func makeTdFlow(flow flowType, tdRaw *tdRawConn) (*TapdanceFlowConn, error) {
 		tdRaw = makeTdRaw(tagHttpGetIncomplete,
 			stationPubkey[:],
 			remoteConnId[:])
+		tdRaw.covert = covert
 		tdRaw.sessionId = sessionsTotal.GetAndInc()
 	}
 
