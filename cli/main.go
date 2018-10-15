@@ -23,7 +23,7 @@ func main() {
 	var assets_location = flag.String("assetsdir", "./assets/", "Folder to read assets from.")
 	var proxyProtocol = flag.Bool("proxyproto", false, "Enable PROXY protocol, requesting TapDance station to send client's IP to destination.")
 	var debug = flag.Bool("debug", false, "Enable debug logs")
-	var ssl_log = flag.String("tlslog", "", "Filename to write SSL secrets to (allows Wireshark to decrypt TLS connections)")
+	var tlsLog = flag.String("tlslog", "", "Filename to write SSL secrets to (allows Wireshark to decrypt TLS connections)")
 	flag.Parse()
 
 	if *debug {
@@ -44,8 +44,8 @@ func main() {
 		tapdance.EnableProxyProtocol()
 	}
 
-	if *ssl_log != "" {
-		err := tapdance.SetTlsLogFilename(*ssl_log)
+	if *tlsLog != "" {
+		err := tapdance.SetTlsLogFilename(*tlsLog)
 		if err != nil {
 			tapdance.Logger().Fatal(err)
 		}
