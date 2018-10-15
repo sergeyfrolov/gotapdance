@@ -85,13 +85,13 @@ func getRandString(length int) string {
 	return string(randString)
 }
 
-// obfuscateTagAndProtobuf() generates sharedSecret between client and station given stationPubkey,
-// then uses Eligator to find uniformly random representative (and avoid sending over the wire
-// the sharedSecret = point on ellyptic curve, since it is distinguishable), which uniquely
-// identifies sharedSecret to the party with station private key.
-// This sharedSecret will be used to encrypt stegoPayload and protobuf slices:
-//  - stegoPayload is encrypted with AES-GCM KEY=sharedKey[0:16], IV=sharedSecret[16:28]
-//  - protobuf is encrypted with AES-GCM KEY=sharedKey[0:16], IV={new random IV}, that will be
+// obfuscateTagAndProtobuf() generates key-pair and combines it /w stationPubkey to generate
+// sharedSecret. Client will use Eligator to find and send uniformly random representative for its
+// public key (and avoid sending it directly over the wire, as points on ellyptic curve are
+// distinguishable)
+// Then the sharedSecret will be used to encrypt stegoPayload and protobuf slices:
+//  - stegoPayload is encrypted with AES-GCM KEY=sharedSecret[0:16], IV=sharedSecret[16:28]
+//  - protobuf is encrypted with AES-GCM KEY=sharedSecret[0:16], IV={new random IV}, that will be
 //    prepended to encryptedProtobuf and eventually sent out together
 // Returns
 //  - tag(concatenated representative and encrypted stegoPayload),

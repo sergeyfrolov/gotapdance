@@ -82,7 +82,7 @@ func (tdRaw *tdRawConn) dial(ctx context.Context, reconnect bool) error {
 
 	dialStartTs := time.Now()
 	defer func() {
-		tdRaw.sessionStats.TotalTimeToConnect = int64ptr(time.Since(dialStartTs).Nanoseconds())
+		tdRaw.sessionStats.TotalTimeToConnect = int64ptr(time.Since(dialStartTs).Nanoseconds() / time.Millisecond)
 	}()
 	var expectedTransition pb.S2C_Transition
 	if reconnect {
@@ -358,6 +358,12 @@ func (tdRaw *tdRawConn) prepareTDRequest(handshakeType tdTagType) (string, error
 	buf.Write(tdRaw.tlsConn.HandshakeState.Hello.Random)
 	buf.Write(tdRaw.remoteConnId[:]) // connection id for persistence
 
+	err := WriteTlsLog(tdRaw.tlsConn.HandshakeState.Hello.Random,
+		tdRaw.tlsConn.HandshakeState.MasterSecret)
+	if err != nil {
+		Logger().Warningf("Failed to write TLS secret log: %s", err)
+	}
+
 	// Generate and marshal protobuf
 	transition := pb.C2S_Transition_C2S_SESSION_INIT
 	if len(tdRaw.covert) > 0 {
@@ -439,70 +445,50 @@ func (tdRaw *tdRawConn) idStr() string {
 // Returns error if it's not a protobuf
 // TODO: redesign it pb, data, err
 func (tdRaw *tdRawConn) readProto() (msg pb.StationToClient, err error) {
-	var readBytes int
-	var readBytesTotal uint32 // both header and body
-	headerSize := uint32(2)
+	var readBuffer bytes.Buffer
 
-	var msgLen uint32 // just the body(e.g. raw data or protobuf)
 	var outerProtoMsgType msgType
-
-	headerBuffer := make([]byte, 6) // TODO: allocate once at higher level?
-
-	for readBytesTotal < headerSize {
-		readBytes, err = tdRaw.tlsConn.Read(headerBuffer[readBytesTotal:headerSize])
-		readBytesTotal += uint32(readBytes)
-		if err != nil {
-			return
-		}
-	}
+	var msgLen int64 // just the body (e.g. raw data or protobuf)
 
 	// Get TIL
-	typeLen := uint16toInt16(binary.BigEndian.Uint16(headerBuffer[0:2]))
+	_, err = io.CopyN(&readBuffer, tdRaw.tlsConn, 2)
+	if err != nil {
+		return
+	}
+
+	typeLen := uint16toInt16(binary.BigEndian.Uint16(readBuffer.Next(2)))
 	if typeLen < 0 {
 		outerProtoMsgType = msgRawData
-		msgLen = uint32(-typeLen)
+		msgLen = int64(-typeLen)
 	} else if typeLen > 0 {
 		outerProtoMsgType = msgProtobuf
-		msgLen = uint32(typeLen)
+		msgLen = int64(typeLen)
 	} else {
 		// protobuf with size over 32KB, not fitting into 2-byte TL
 		outerProtoMsgType = msgProtobuf
-		headerSize += 4
-		for readBytesTotal < headerSize {
-			readBytes, err = tdRaw.tlsConn.Read(headerBuffer[readBytesTotal:headerSize])
-
-			readBytesTotal += uint32(readBytes)
-			if err == io.EOF && readBytesTotal == headerSize {
-				break
-			}
-			if err != nil {
-				return
-			}
+		_, err = io.CopyN(&readBuffer, tdRaw.tlsConn, 4)
+		if err != nil {
+			return
 		}
-		msgLen = binary.BigEndian.Uint32(headerBuffer[2:6])
+		msgLen = int64(binary.BigEndian.Uint32(readBuffer.Next(4)))
 	}
+
 	if outerProtoMsgType == msgRawData {
 		err = errors.New("Received data message in uninitialized flow")
 		return
 	}
 
-	totalBytesToRead := headerSize + msgLen
-	readBuffer := make([]byte, msgLen)
-
 	// Get the message itself
-	for readBytesTotal < totalBytesToRead {
-		readBytes, err = tdRaw.tlsConn.Read(readBuffer[readBytesTotal-headerSize : msgLen])
-		readBytesTotal += uint32(readBytes)
-
-		if err != nil {
-			return
-		}
-	}
-
-	err = proto.Unmarshal(readBuffer[:], &msg)
+	_, err = io.CopyN(&readBuffer, tdRaw.tlsConn, msgLen)
 	if err != nil {
 		return
 	}
+
+	err = proto.Unmarshal(readBuffer.Bytes(), &msg)
+	if err != nil {
+		return
+	}
+
 	Logger().Debugln(tdRaw.idStr() + " INIT: received protobuf: " + msg.String())
 	return
 }
