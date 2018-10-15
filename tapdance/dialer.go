@@ -46,9 +46,11 @@ func (d *Dialer) DialContext(ctx context.Context, network, address string) (net.
 	if network != "tcp" {
 		return nil, &net.OpError{Op: "dial", Net: network, Err: net.UnknownNetworkError(network)}
 	}
-	_, _, err := net.SplitHostPort(address)
-	if err != nil {
-		return nil, err
+	if len(address) > 0 {
+		_, _, err := net.SplitHostPort(address)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if !d.SplitFlows {

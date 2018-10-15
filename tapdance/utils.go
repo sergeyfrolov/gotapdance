@@ -257,8 +257,11 @@ func maxInt(a, b int) int {
 	return b
 }
 
-// because protobuf wants pointers
-func int64ptr(i int64) *int64 {
+// Converts provided duration to raw milliseconds.
+// Returns a pointer to u32, because protobuf wants pointers.
+// Max valid input duration (that fits into uint32): 49.71 days.
+func durationToU32ptrMs(d time.Duration) *uint32 {
+	i := uint32(d.Nanoseconds() / int64(time.Millisecond))
 	return &i
 }
 

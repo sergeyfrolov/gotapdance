@@ -82,7 +82,7 @@ func (tdRaw *tdRawConn) dial(ctx context.Context, reconnect bool) error {
 
 	dialStartTs := time.Now()
 	defer func() {
-		tdRaw.sessionStats.TotalTimeToConnect = int64ptr(time.Since(dialStartTs).Nanoseconds())
+		tdRaw.sessionStats.TotalTimeToConnect = durationToU32ptrMs(time.Since(dialStartTs))
 	}()
 	var expectedTransition pb.S2C_Transition
 	if reconnect {
@@ -151,7 +151,7 @@ func (tdRaw *tdRawConn) tryDialOnce(ctx context.Context, expectedTransition pb.S
 			") failed with " + err.Error())
 		return err
 	}
-	tdRaw.sessionStats.TlsToDecoy = int64ptr(tlsToDecoyTotalTs.Nanoseconds())
+	tdRaw.sessionStats.TlsToDecoy = durationToU32ptrMs(tlsToDecoyTotalTs)
 	Logger().Infof("%s Connected to decoy %s(%s) in %s\n", tdRaw.idStr(), tdRaw.decoySpec.GetHostname(),
 		tdRaw.decoySpec.GetIpv4AddrStr(), tlsToDecoyTotalTs.String())
 
@@ -210,7 +210,7 @@ func (tdRaw *tdRawConn) tryDialOnce(ctx context.Context, expectedTransition pb.S
 
 		tdRaw.initialMsg, err = tdRaw.readProto()
 		rttToStationTotalTs := time.Since(rttToStationStartTs)
-		tdRaw.sessionStats.RttToStation = int64ptr(rttToStationTotalTs.Nanoseconds())
+		tdRaw.sessionStats.RttToStation = durationToU32ptrMs(rttToStationTotalTs)
 		if err != nil {
 			if errIsTimeout(err) {
 				Logger().Errorf("%s %s: %v", tdRaw.idStr(),
@@ -276,7 +276,7 @@ func (tdRaw *tdRawConn) establishTLStoDecoy(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	tdRaw.sessionStats.TcpToDecoy = int64ptr(tcpToDecoyTotalTs.Nanoseconds())
+	tdRaw.sessionStats.TcpToDecoy = durationToU32ptrMs(tcpToDecoyTotalTs)
 
 	config := tls.Config{ServerName: tdRaw.decoySpec.GetHostname()}
 	if config.ServerName == "" {
