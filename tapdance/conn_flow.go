@@ -69,8 +69,7 @@ func makeTdFlow(flow flowType, tdRaw *tdRawConn, covert string) (*TapdanceFlowCo
 		remoteConnId := make([]byte, 16)
 		rand.Read(remoteConnId[:])
 		tdRaw = makeTdRaw(tagHttpGetIncomplete,
-			stationPubkey[:],
-			remoteConnId[:])
+			stationPubkey[:])
 		tdRaw.covert = covert
 		tdRaw.sessionId = sessionsTotal.GetAndInc()
 	}

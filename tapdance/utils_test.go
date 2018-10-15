@@ -54,7 +54,7 @@ func TestObfuscate(t *testing.T) {
 	oldReader := rand.Reader
 	defer func() { rand.Reader = oldReader }()
 	rand.Reader = testRandReader
-	obfuscated, err := obfuscateTagAndProtobuf(tag, nil, pubkey)
+	obfuscated, _, err := obfuscateTagAndProtobuf(tag, nil, pubkey)
 	if err != nil {
 		t.Fatalf("Error: %v\n", err)
 	}

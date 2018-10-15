@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/refraction-networking/utls"
+	"crypto/rand"
 )
 
 // Simply establishes TLS and TapDance connection.
@@ -55,12 +56,10 @@ type tdRawConn struct {
 	strIdSuffix string // suffix for every log string (e.g. to mark upload-only flows)
 }
 
-func makeTdRaw(handshakeType tdTagType,
-	stationPubkey []byte,
-	remoteConnId []byte) *tdRawConn {
+func makeTdRaw(handshakeType tdTagType, stationPubkey []byte) *tdRawConn {
 	tdRaw := &tdRawConn{tagType: handshakeType,
 		stationPubkey: stationPubkey,
-		remoteConnId:  remoteConnId}
+	}
 	tdRaw.flowId = 0
 	tdRaw.sessionStats = new(pb.SessionStats)
 	tdRaw.closed = make(chan struct{})
@@ -142,6 +141,10 @@ func (tdRaw *tdRawConn) tryDialOnce(ctx context.Context, expectedTransition pb.S
 	Logger().Infoln(tdRaw.idStr() + " Attempting to connect to decoy " +
 		tdRaw.decoySpec.GetHostname() + " (" + tdRaw.decoySpec.GetIpv4AddrStr() + ")")
 
+	// generate a new remove conn ID for each attempt to dial
+	tdRaw.remoteConnId = make([]byte, 16)
+	rand.Read(tdRaw.remoteConnId[:])
+
 	tlsToDecoyStartTs := time.Now()
 	err = tdRaw.establishTLStoDecoy(ctx)
 	tlsToDecoyTotalTs := time.Since(tlsToDecoyStartTs)
@@ -152,7 +155,7 @@ func (tdRaw *tdRawConn) tryDialOnce(ctx context.Context, expectedTransition pb.S
 		return err
 	}
 	tdRaw.sessionStats.TlsToDecoy = durationToU32ptrMs(tlsToDecoyTotalTs)
-	Logger().Infof("%s Connected to decoy %s(%s) in %s\n", tdRaw.idStr(), tdRaw.decoySpec.GetHostname(),
+	Logger().Infof("%s Connected to decoy %s(%s) in %s", tdRaw.idStr(), tdRaw.decoySpec.GetHostname(),
 		tdRaw.decoySpec.GetIpv4AddrStr(), tlsToDecoyTotalTs.String())
 
 	if tdRaw.IsClosed() {
@@ -207,7 +210,6 @@ func (tdRaw *tdRawConn) tryDialOnce(ctx context.Context, expectedTransition pb.S
 
 	switch tdRaw.tagType {
 	case tagHttpGetIncomplete:
-
 		tdRaw.initialMsg, err = tdRaw.readProto()
 		rttToStationTotalTs := time.Since(rttToStationStartTs)
 		tdRaw.sessionStats.RttToStation = durationToU32ptrMs(rttToStationTotalTs)
@@ -235,11 +237,14 @@ func (tdRaw *tdRawConn) tryDialOnce(ctx context.Context, expectedTransition pb.S
 			}
 			return
 		}
-
+		fmt.Println("tdRaw.initialMsg.GetStateTransition()", tdRaw.initialMsg.GetStateTransition())
+		fmt.Println("expectedTransition", expectedTransition)
 		if tdRaw.initialMsg.GetStateTransition() != expectedTransition {
 			err = errors.New("Init error: state transition mismatch!" +
 				" Received: " + tdRaw.initialMsg.GetStateTransition().String() +
 				" Expected: " + expectedTransition.String())
+			Logger().Infof("%s Failed to connect to TapDance Station [%s]: %s",
+				tdRaw.idStr(), tdRaw.initialMsg.GetStationId(), err.Error())
 			// this exceptional error implies that station has lost state, thus is fatal
 			return err
 		}

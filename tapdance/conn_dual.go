@@ -2,7 +2,6 @@ package tapdance
 
 import (
 	"context"
-	"crypto/rand"
 	"errors"
 	"net"
 	"strconv"
@@ -25,12 +24,7 @@ func dialSplitFlow(ctx context.Context, customDialer func(context.Context, strin
 	dualConn := DualConn{sessionId: sessionsTotal.GetAndInc()}
 	stationPubkey := Assets().GetPubkey()
 
-	remoteConnId := make([]byte, 16)
-	rand.Read(remoteConnId[:])
-
-	rawRConn := makeTdRaw(tagHttpGetIncomplete,
-		stationPubkey[:],
-		remoteConnId[:])
+	rawRConn := makeTdRaw(tagHttpGetIncomplete, stationPubkey[:])
 	if customDialer != nil {
 		rawRConn.TcpDialer = customDialer
 	}
@@ -59,8 +53,7 @@ func dialSplitFlow(ctx context.Context, customDialer func(context.Context, strin
 	}
 
 	rawWConn := makeTdRaw(tagHttpPostIncomplete,
-		stationPubkey[:],
-		remoteConnId[:])
+		stationPubkey[:])
 	if customDialer != nil {
 		rawRConn.TcpDialer = customDialer
 	}
