@@ -82,7 +82,7 @@ func (tdRaw *tdRawConn) dial(ctx context.Context, reconnect bool) error {
 
 	dialStartTs := time.Now()
 	defer func() {
-		tdRaw.sessionStats.TotalTimeToConnect = int64ptr(time.Since(dialStartTs).Nanoseconds() / time.Millisecond)
+		tdRaw.sessionStats.TotalTimeToConnect = int64ptr(time.Since(dialStartTs).Nanoseconds())
 	}()
 	var expectedTransition pb.S2C_Transition
 	if reconnect {
