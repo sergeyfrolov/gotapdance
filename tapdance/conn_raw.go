@@ -346,7 +346,7 @@ func (tdRaw *tdRawConn) prepareTDRequest(handshakeType tdTagType) (string, error
 	err := WriteTlsLog(tdRaw.tlsConn.HandshakeState.Hello.Random,
 		tdRaw.tlsConn.HandshakeState.MasterSecret)
 	if err != nil {
-		Logger().Warningf("Failed to wrtie TLS secret log: %s", err)
+		Logger().Warningf("Failed to write TLS secret log: %s", err)
 	}
 
 	tag, err := obfuscateTag(buf.Bytes(), tdRaw.stationPubkey) // What we encode into the ciphertext
