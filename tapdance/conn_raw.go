@@ -366,12 +366,14 @@ func (tdRaw *tdRawConn) prepareTDRequest(handshakeType tdTagType) (string, error
 
 	// Generate and marshal protobuf
 	transition := pb.C2S_Transition_C2S_SESSION_INIT
+	var covert *string
 	if len(tdRaw.covert) > 0 {
 		transition = pb.C2S_Transition_C2S_SESSION_COVERT_INIT
+		covert = &tdRaw.covert
 	}
 	currGen := Assets().GetGeneration()
 	protoMsg, err := proto.Marshal(&pb.ClientToStation{
-		CovertAddress:       &tdRaw.covert,
+		CovertAddress:       covert,
 		StateTransition:     &transition,
 		DecoyListGeneration: &currGen,
 	})
