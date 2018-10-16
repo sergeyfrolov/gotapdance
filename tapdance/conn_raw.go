@@ -119,6 +119,13 @@ func (tdRaw *tdRawConn) dial(ctx context.Context, reconnect bool) error {
 			}
 		}
 
+		if !reconnect {
+			// generate a new remove conn ID for each attempt to dial
+			// keep same remote conn ID for reconnect, since that's what it is for
+			tdRaw.remoteConnId = make([]byte, 16)
+			rand.Read(tdRaw.remoteConnId[:])
+		}
+
 		err = tdRaw.tryDialOnce(ctx, expectedTransition)
 		if err == nil {
 			tdRaw.sessionStats.TotalTimeToConnect = durationToU32ptrMs(time.Since(dialStartTs))
@@ -137,10 +144,6 @@ func (tdRaw *tdRawConn) dial(ctx context.Context, reconnect bool) error {
 func (tdRaw *tdRawConn) tryDialOnce(ctx context.Context, expectedTransition pb.S2C_Transition) (err error) {
 	Logger().Infoln(tdRaw.idStr() + " Attempting to connect to decoy " +
 		tdRaw.decoySpec.GetHostname() + " (" + tdRaw.decoySpec.GetIpv4AddrStr() + ")")
-
-	// generate a new remove conn ID for each attempt to dial
-	tdRaw.remoteConnId = make([]byte, 16)
-	rand.Read(tdRaw.remoteConnId[:])
 
 	tlsToDecoyStartTs := time.Now()
 	err = tdRaw.establishTLStoDecoy(ctx)
