@@ -375,17 +375,19 @@ func (tdRaw *tdRawConn) prepareTDRequest(handshakeType tdTagType) (string, error
 		covert = &tdRaw.covert
 	}
 	currGen := Assets().GetGeneration()
-	protoMsg, err := proto.Marshal(&pb.ClientToStation{
+	initProto := &pb.ClientToStation{
 		CovertAddress:       covert,
 		StateTransition:     &transition,
 		DecoyListGeneration: &currGen,
-	})
+	}
+	initProtoBytes, err := proto.Marshal(initProto)
 	if err != nil {
 		return "", err
 	}
+	Logger().Debugln(tdRaw.idStr()+" Initial protobuf", initProto)
 
 	// Obfuscate/encrypt tag and protobuf
-	tag, encryptedProtoMsg, err := obfuscateTagAndProtobuf(buf.Bytes(), protoMsg, tdRaw.stationPubkey)
+	tag, encryptedProtoMsg, err := obfuscateTagAndProtobuf(buf.Bytes(), initProtoBytes, tdRaw.stationPubkey)
 	if err != nil {
 		return "", err
 	}
