@@ -141,18 +141,19 @@ func obfuscateTagAndProtobuf(stegoPayload []byte, protobuf []byte, stationPubkey
 	tagBuf.Write(encryptedStegoPayload)
 	tag := tagBuf.Bytes()
 
-	var encryptedProtobuf []byte
-	if len(protobuf) > 0 {
-		// probably could have used all zeros as IV here, but better to err on safe side
-		aesIvProtobuf := make([]byte, 12)
-		_, err = rand.Read(aesIvProtobuf)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		encryptedProtobuf, err = aesGcmEncrypt(protobuf, aesKey, aesIvProtobuf)
+	if len(protobuf) == 0 {
+		return tag, nil, err
 	}
-	return tag, encryptedProtobuf, err
+
+	// probably could have used all zeros as IV here, but better to err on safe side
+	aesIvProtobuf := make([]byte, 12)
+	_, err = rand.Read(aesIvProtobuf)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	encryptedProtobuf, err := aesGcmEncrypt(protobuf, aesKey, aesIvProtobuf)
+	return tag, append(aesIvProtobuf, encryptedProtobuf...), err
 }
 
 func getMsgWithHeader(msgType msgType, msgBytes []byte) []byte {

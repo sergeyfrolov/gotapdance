@@ -47,10 +47,10 @@ type tdRawConn struct {
 	closeOnce sync.Once
 
 	// stats to report
-	sessionStats *pb.SessionStats
+	sessionStats pb.SessionStats
 	failedDecoys []string
 
-	// purely for logging purposes:
+	// purely for logging and stats reporting purposes:
 	flowId      uint64 // id of the flow within the session (=how many times reconnected)
 	sessionId   uint64 // id of the local session
 	strIdSuffix string // suffix for every log string (e.g. to mark upload-only flows)
@@ -61,7 +61,6 @@ func makeTdRaw(handshakeType tdTagType, stationPubkey []byte) *tdRawConn {
 		stationPubkey: stationPubkey,
 	}
 	tdRaw.flowId = 0
-	tdRaw.sessionStats = new(pb.SessionStats)
 	tdRaw.closed = make(chan struct{})
 	return tdRaw
 }
@@ -80,9 +79,6 @@ func (tdRaw *tdRawConn) dial(ctx context.Context, reconnect bool) error {
 	var err error
 
 	dialStartTs := time.Now()
-	defer func() {
-		tdRaw.sessionStats.TotalTimeToConnect = durationToU32ptrMs(time.Since(dialStartTs))
-	}()
 	var expectedTransition pb.S2C_Transition
 	if reconnect {
 		maxConnectionAttempts = 5
@@ -125,14 +121,15 @@ func (tdRaw *tdRawConn) dial(ctx context.Context, reconnect bool) error {
 
 		err = tdRaw.tryDialOnce(ctx, expectedTransition)
 		if err == nil {
+			tdRaw.sessionStats.TotalTimeToConnect = durationToU32ptrMs(time.Since(dialStartTs))
 			return nil
 		}
 		tdRaw.failedDecoys = append(tdRaw.failedDecoys,
 			tdRaw.decoySpec.GetHostname()+" "+tdRaw.decoySpec.GetIpv4AddrStr())
-		if tdRaw.sessionStats.FailedDecoys == nil {
-			tdRaw.sessionStats.FailedDecoys = new(uint32)
+		if tdRaw.sessionStats.FailedDecoysAmount == nil {
+			tdRaw.sessionStats.FailedDecoysAmount = new(uint32)
 		}
-		*tdRaw.sessionStats.FailedDecoys += uint32(1)
+		*tdRaw.sessionStats.FailedDecoysAmount += uint32(1)
 	}
 	return err
 }
@@ -237,8 +234,6 @@ func (tdRaw *tdRawConn) tryDialOnce(ctx context.Context, expectedTransition pb.S
 			}
 			return
 		}
-		fmt.Println("tdRaw.initialMsg.GetStateTransition()", tdRaw.initialMsg.GetStateTransition())
-		fmt.Println("expectedTransition", expectedTransition)
 		if tdRaw.initialMsg.GetStateTransition() != expectedTransition {
 			err = errors.New("Init error: state transition mismatch!" +
 				" Received: " + tdRaw.initialMsg.GetStateTransition().String() +
@@ -510,9 +505,11 @@ func (tdRaw *tdRawConn) writeTransition(transition pb.C2S_Transition) (n int, er
 	msg := pb.ClientToStation{
 		DecoyListGeneration: &currGen,
 		StateTransition:     &transition,
-		Stats:               tdRaw.sessionStats,
 		UploadSync:          new(uint64)} // TODO: remove
-	tdRaw.sessionStats = nil // do not send again
+	if tdRaw.flowId == 0 {
+		// we have stats for each reconnect, but only send stats for the initial connection
+		msg.Stats = &tdRaw.sessionStats
+	}
 
 	if len(tdRaw.failedDecoys) > 0 {
 		failedDecoysIdx := 0 // how many failed decoys to report now
