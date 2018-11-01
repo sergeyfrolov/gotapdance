@@ -25,10 +25,11 @@ func Logger() *logrus.Logger {
 		logrusLogger.Level = logrus.InfoLevel
 		// logrusLogger.Level = logrus.DebugLevel
 
-		// CI will overwrite the build string with branch and commit hash
-		const build string = "[BUILD]"
-		if build != "[BUILD]" {
-			logrusLogger.Infof("Running gotapdance build %s", build)
+		// buildInfo const will be overwritten by CI with `sed` for test builds
+		// if not overwritten -- this is a NO-OP
+		const buildInfo = ""
+		if len(buildInfo) > 0 {
+			logrusLogger.Infof("Running gotapdance build %s", buildInfo)
 		}
 	})
 	return logrusLogger
